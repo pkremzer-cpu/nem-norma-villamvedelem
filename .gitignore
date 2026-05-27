@@ -1,0 +1,25 @@
+# Node / npm (ha valaha build step kerül be)
+node_modules/
+package-lock.json
+yarn.lock
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Tesztfájlok (Node lokálisan futtathatóak a tests/ mappában maradnak)
+*.test.js
+
+# Tmp / build
+*.tmp
+*.bak
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*

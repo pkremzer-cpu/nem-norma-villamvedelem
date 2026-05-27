@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nem norma szerinti villámvédelem - TvMI 7.7 besoroló</title>
+  <meta name="description" content="Nem norma szerinti villámvédelem besoroló alkalmazás a TvMI 7.7:2026.02.01. 10. fejezet alapján. R/M/T/K osztály + V/L/F/B fokozat számítása, PDF/DOCX jegyzőkönyv export.">
+  <meta name="author" content="Kremzer Péter (ICCS Kft.)">
+  <meta name="theme-color" content="#0E1116">
+  <link rel="stylesheet" href="assets/css/style.css">
+
+  <!-- Open Graph (megosztáshoz) -->
+  <meta property="og:title" content="Nem norma szerinti villámvédelem besoroló">
+  <meta property="og:description" content="TvMI 7.7:2026.02.01. 10. fejezet szerinti besorolás">
+  <meta property="og:type" content="website">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="site-header-inner">
+      <div class="brand">TvMI 7.7 · besoroló</div>
+      <h1 class="app-title">Nem norma szerinti villámvédelem</h1>
+      <div class="app-sub">v1.0 · 2026.02.01.</div>
+    </div>
+  </header>
+
+  <nav class="tab-bar">
+    <div class="tab-bar-inner">
+      <button class="tab-btn active" data-tab="uj">Új besorolás</button>
+      <button class="tab-btn" data-tab="mentett">Mentettek <span class="count" id="saved-count">0</span></button>
+      <button class="tab-btn" data-tab="beallit">Beállítások</button>
+      <button class="tab-btn" data-tab="hivatkozas">TvMI hivatkozás</button>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         ÚJ BESOROLÁS PANEL
+         ════════════════════════════════════════════════════════════════ -->
+    <section class="tab-panel active" data-tab="uj">
+
+      <div class="draft-summary-bar">
+        <span><span class="label">Aktuális:</span> <span id="draft-summary">—</span></span>
+        <button id="btn-uj" class="btn ghost" style="background: rgba(255,255,255,0.08); color: var(--bg-paper); border-color: rgba(232,182,0,0.3);">+ Új besorolás</button>
+      </div>
+
+      <!-- ── 1. ÉPÍTMÉNY ────────────────────────────────────────── -->
+      <div class="card">
+        <div class="card-header">
+          <span class="num">01</span>
+          <h2>Építmény és helyszín</h2>
+          <span class="hint">Opcionális azonosítás</span>
+        </div>
+        <div class="field">
+          <label for="epitmeny-neve">Építmény megnevezése</label>
+          <input type="text" id="epitmeny-neve" placeholder="pl. Babócsa gyűjtőállomás vezérlőépület">
+        </div>
+        <div class="field">
+          <label for="cim">Cím / helyszín</label>
+          <input type="text" id="cim" placeholder="pl. 7584 Babócsa, Petőfi u. 1.">
+          <div class="gps-row" style="margin-top:8px;">
+            <button class="btn ghost" id="btn-cim-keres">🔍 Cím keresése</button>
+            <button class="btn ghost" id="btn-gps">📍 Saját GPS</button>
+          </div>
+          <div id="gps-info" class="gps-info">—</div>
+        </div>
+      </div>
+
+      <!-- ── 2. RENDELTETÉS (R) ─────────────────────────────────── -->
+      <div class="card">
+        <div class="card-header">
+          <span class="num">02</span>
+          <h2>Rendeltetés szerinti csoport</h2>
+          <span class="hint">TvMI 10.1.1. (1. tbl.)</span>
+        </div>
+        <div class="radio-grid">
+          <label class="radio-card">
+            <input type="radio" name="r-csoport" value="R1">
+            <div class="rc-title"><span class="code">R1</span> Általános építmény</div>
+            <div class="rc-desc">R2..R5 csoportba nem tartozó építmény (családi ház, raktár, normál iroda).</div>
+            <div class="rc-pelda">pl. családi ház, kis műhely, gazdasági épület</div>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="r-csoport" value="R2">
+            <div class="rc-title"><span class="code">R2</span> Közösségi / kulturális</div>
+            <div class="rc-desc">Tűzszakaszonként &gt;500 fő; tömegtartózkodás; közmű alállomás; műemléki/művészeti érték.</div>
+            <div class="rc-pelda">pl. színház, sportcsarnok, múzeum, plázák</div>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="r-csoport" value="R3">
+            <div class="rc-title"><span class="code">R3</span> Korlátozott robb. / mérsékelt tűz</div>
+            <div class="rc-desc">9.6. szerinti „korlátozott mértékű robbanásveszély" VAGY mérsékelten tűzveszélyes anyagok.</div>
+            <div class="rc-pelda">pl. asztalosműhely, papírraktár, kis akku-töltő</div>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="r-csoport" value="R4">
+            <div class="rc-title"><span class="code">R4</span> Fokozottan tűz/robb.</div>
+            <div class="rc-desc">Fokozottan tűz- és robbanásveszélyes osztály, NEM R3 (jelentős Ex1 zóna).</div>
+            <div class="rc-pelda">pl. üzemanyagtöltő, oldószerraktár, lakkozó</div>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="r-csoport" value="R5">
+            <div class="rc-title"><span class="code">R5</span> Katasztrófával fenyegető</div>
+            <div class="rc-desc">Villámcsapás esetén katasztrófahelyzetet idézhet elő (SEVESO, atomerőmű építményei).</div>
+            <div class="rc-pelda">pl. SEVESO II/III üzem, nagyméretű vegyipar</div>
+          </label>
+        </div>
+      </div>
+
+      <!-- ── 3. MAGASSÁG (M) ────────────────────────────────────── -->
+      <div class="card">
+        <div class="card-header">
+          <span class="num">03</span>
+          <h2>Magasság és környezet</h2>
+          <span class="hint">TvMI 10.1.2. (2. tbl.)</span>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="magassag-m">Építmény magassága <span class="req">*</span></label>
+            <input type="number" id="magassag-m" min="0" step="0.1" placeholder="m">
+            <div class="small muted" style="margin-top:4px;">Tetőfelület magassága a mértékadó (gépészet/kémény figyelmen kívül). 5 m-nél nagyobb magassági különbség esetén szétbontható.</div>
+          </div>
+        </div>
+        <div class="radio-grid">
+          <label class="radio-card">
+            <input type="radio" name="kornyezet" value="csokkento">
+            <div class="rc-title"><span class="code">Csökkentő</span></div>
+            <div class="rc-desc">20 m-es körzetben legalább két ellenkező oldalról ≤2 m-rel alacsonyabb épületek, VAGY a terep e körzetben a legmagasabb pont szintjére emelkedik.</div>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="kornyezet" value="nincs">
+            <div class="rc-title"><span class="code">Nincs hatás</span></div>
+            <div class="rc-desc">Sem csökkentő, sem fokozó környezet feltételei nem teljesülnek.</div>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="kornyezet" value="fokozo">
+            <div class="rc-title"><span class="code">Fokozó</span></div>
+            <div class="rc-desc">Hegytetőn / hegygerincen önmagában áll, VAGY sík területen 100 m-en belül magában áll és magassága &gt;10 m.</div>
+          </label>
+        </div>
+      </div>
+
+      <!-- ── 4. TETŐ (T) ────────────────────────────────────────── -->
+      <div class="card">
+        <div class="card-header">
+          <span class="num">04</span>
+          <h2>Tető – szerkezet és fedés</h2>
+          <span class="hint">TvMI 10.1.3. (3. tbl.)</span>
+        </div>
+        <h3 style="font-size:13px;font-weight:600;margin-top:8px;">Tetőszerkezet / tetőfödém</h3>
+        <div class="radio-grid">
+          <label class="radio-card">
+            <input type="radio" name="teto-szerkezet" value="T.a">
+            <div class="rc-title"><span class="code">T.a</span> A1/A2 vagy B/C, fém nélkül</div>
+            <div class="rc-desc">Tűzvédelmi A1+A2 vagy B+C anyag, fém alkatrészek nélkül.</div>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="teto-szerkezet" value="T.b">
+            <div class="rc-title"><span class="code">T.b</span> Bármi, fémmel</div>
+            <div class="rc-desc">Bármilyen anyag fém alkatrészekkel, kivéve a tetőfelület alatt &gt;50 cm-re lévő A1-be ágyazott fémszerkezetet.</div>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="teto-szerkezet" value="T.c">
+            <div class="rc-title"><span class="code">T.c</span> Egyéb, fém nélkül</div>
+            <div class="rc-desc">Egyéb anyag (C/D/E/F osztály), fém alkatrészek nélkül.</div>
+          </label>
+        </div>
+
+        <h3 style="font-size:13px;font-weight:600;margin-top:16px;">Tetőfedés (felület)</h3>
+        <div class="radio-grid">
+          <label class="radio-card">
+            <input type="radio" name="teto-fedes" value="T.I">
+            <div class="rc-title"><span class="code">T.I</span> Nem éghető (A1/A2/Broof)</div>
+            <div class="rc-desc">A1+A2 anyag, vagy legalább Broof(t1), fém nélkül; vagy fémlemezzel borított vékony rétegek (lásd lista).</div>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="teto-fedes" value="T.II">
+            <div class="rc-title"><span class="code">T.II</span> Fém / vastag fémlemez</div>
+            <div class="rc-desc">Fém egyedül, vagy fém + A1/A2; vagy vastag fémlemezzel borított éghető anyag (lásd lista).</div>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="teto-fedes" value="T.III">
+            <div class="rc-title"><span class="code">T.III</span> Éghető fém nélkül</div>
+            <div class="rc-desc">C/D/E/F osztály, gyulladási hőm. &lt;400°C, fém alkatrészek nélkül.</div>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="teto-fedes" value="T.IV">
+            <div class="rc-title"><span class="code">T.IV</span> Éghető fémmel</div>
+            <div class="rc-desc">C/D/E/F osztály, &lt;400°C, fém alkatrészekkel; vagy vékony fémlemezzel borított, ami nem felel meg T.II-nek.</div>
+          </label>
+        </div>
+      </div>
+
+      <!-- ── 5. KÖRÍTŐFAL (K) ───────────────────────────────────── -->
+      <div class="card">
+        <div class="card-header">
+          <span class="num">05</span>
+          <h2>Körítőfalak</h2>
+          <span class="hint">TvMI 10.1.4.</span>
+        </div>
+        <div class="radio-grid">
+          <label class="radio-card">
+            <input type="radio" name="koritofal" value="K1">
+            <div class="rc-title"><span class="code">K1</span> A1/A2 anyag</div>
+            <div class="rc-desc">Tégla, vasbeton, mészhomok, gázbeton — fémfegyverzet nélkül.</div>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="koritofal" value="K2">
+            <div class="rc-title"><span class="code">K2</span> Fémszerkezetű / fémburkolt</div>
+            <div class="rc-desc">≥50 mm² összekötött fém; vagy ≥0,5 mm fémlemezzel burkolt; vagy acéloszlopos vázú; vagy fémtartály oldal.</div>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="koritofal" value="K3">
+            <div class="rc-title"><span class="code">K3</span> Egyéb</div>
+            <div class="rc-desc">Nem K1 és nem K2 (pl. fa, sandwich panel fémfegyverzet nélkül).</div>
+          </label>
+        </div>
+      </div>
+
+      <!-- ── 6. SPECIÁLIS PARAMÉTEREK ───────────────────────────── -->
+      <div class="card">
+        <div class="card-header">
+          <span class="num">06</span>
+          <h2>Speciális paraméterek</h2>
+          <span class="hint">opcionális</span>
+        </div>
+        <label class="check-row">
+          <input type="checkbox" id="van-kulso-lps">
+          <div>
+            <div class="cr-title">Van külső villámvédelem (LPS)</div>
+            <div class="cr-desc">R1 csoportnál a 6. tbl. szerinti másodlagos hatás (B0* vagy B2) különbözik.</div>
+          </div>
+        </label>
+        <label class="check-row">
+          <input type="checkbox" id="lako-rendeltetes">
+          <div>
+            <div class="cr-title">Lakó rendeltetésű épület</div>
+            <div class="cr-desc">A 4. tbl. csillagos értékénél (V3*) lehetővé teszi a meglévő V2 megtartását (10.3.1.1.).</div>
+          </div>
+        </label>
+        <label class="check-row">
+          <input type="checkbox" id="lapos-vagy-bonyolult">
+          <div>
+            <div class="cr-title">Lapostető vagy bonyolult tetőgeometria</div>
+            <div class="cr-desc">A V2 szintű egyszerűsített felfogó NEM alkalmazható.</div>
+          </div>
+        </label>
+      </div>
+
+      <!-- ── 7. TERVEZŐ (OPCIONÁLIS) ────────────────────────────── -->
+      <div class="card">
+        <div class="card-header">
+          <span class="num">07</span>
+          <h2>Tervező / felülvizsgáló</h2>
+          <span class="hint">opcionális — jegyzőkönyvhöz</span>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="tervezo-nev">Név</label>
+            <input type="text" id="tervezo-nev" placeholder="pl. Kremzer Péter">
+          </div>
+          <div class="field">
+            <label for="tervezo-jogosultsag">Jogosultság</label>
+            <input type="text" id="tervezo-jogosultsag" placeholder="pl. V/VV (építésügyi)">
+          </div>
+          <div class="field">
+            <label for="tervezo-alpha">Alpha-azonosító</label>
+            <input type="text" id="tervezo-alpha" placeholder="pl. 01-12345">
+          </div>
+          <div class="field">
+            <label for="tervezo-dolgozott">Cég / munkáltató</label>
+            <input type="text" id="tervezo-dolgozott" placeholder="pl. ICCS Kft.">
+          </div>
+        </div>
+      </div>
+
+      <!-- ── BESOROL gomb ───────────────────────────────────────── -->
+      <div class="btn-row" style="justify-content:center;margin:24px 0;">
+        <button id="btn-besorol" class="btn primary" disabled>▶ Besorolás futtatása</button>
+      </div>
+
+      <!-- ── EREDMÉNY PANEL ─────────────────────────────────────── -->
+      <div class="result-card hidden" id="result-card">
+        <div class="result-header">
+          <div class="label">Kombinált fokozat (TvMI 10.2.1.)</div>
+          <div class="fokozat" id="res-fokozat">—</div>
+        </div>
+        <div class="result-grid">
+          <div class="result-row">
+            <div class="res-code" id="res-r">R?</div>
+            <div>
+              <span class="res-label">Rendeltetés</span>
+              <span class="res-text" id="res-r-leiras"></span>
+            </div>
+          </div>
+          <div class="result-row">
+            <div class="res-code" id="res-m">M?</div>
+            <div>
+              <span class="res-label">Magassági csoport</span>
+              <span class="res-text"></span>
+              <span class="res-indok" id="res-m-indok"></span>
+            </div>
+          </div>
+          <div class="result-row">
+            <div class="res-code" id="res-t">T?</div>
+            <div>
+              <span class="res-label">Tető csoport</span>
+              <span class="res-text"></span>
+              <span class="res-indok" id="res-t-indok"></span>
+            </div>
+          </div>
+          <div class="result-row">
+            <div class="res-code" id="res-k">K?</div>
+            <div>
+              <span class="res-label">Körítőfal</span>
+              <span class="res-text"></span>
+            </div>
+          </div>
+          <div class="result-row">
+            <div class="res-code" id="res-v">V?</div>
+            <div>
+              <span class="res-label">Felfogó fokozat</span>
+              <span class="res-text" id="res-v-leiras"></span>
+            </div>
+          </div>
+          <div class="result-row">
+            <div class="res-code" id="res-l">L?</div>
+            <div>
+              <span class="res-label">Levezető fokozat</span>
+              <span class="res-text" id="res-l-leiras"></span>
+            </div>
+          </div>
+          <div class="result-row">
+            <div class="res-code" id="res-f">F?</div>
+            <div>
+              <span class="res-label">Földelő fokozat</span>
+              <span class="res-text" id="res-f-leiras"></span>
+            </div>
+          </div>
+          <div class="result-row">
+            <div class="res-code" id="res-b">B?</div>
+            <div>
+              <span class="res-label">Másodlagos hatás (potenciálkieq. + túlfeszültség)</span>
+              <span class="res-text" id="res-b-leiras"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="warnings-block hidden" id="res-warnings-block">
+          <h3>⚠ Megjegyzések / figyelmeztetések</h3>
+          <ul id="res-warnings"></ul>
+        </div>
+
+        <div class="result-actions">
+          <button class="btn" id="btn-mentes" disabled>💾 Mentés</button>
+          <button class="btn" id="btn-megoszt" disabled>🔗 Megosztó link</button>
+          <button class="btn" id="btn-pdf" disabled>📄 PDF</button>
+          <button class="btn" id="btn-docx" disabled>📝 DOCX</button>
+          <button class="btn" id="btn-json" disabled>{ } JSON</button>
+        </div>
+      </div>
+
+      <div id="share-link-display" class="share-link-display hidden"></div>
+
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         MENTETT BESOROLÁSOK
+         ════════════════════════════════════════════════════════════════ -->
+    <section class="tab-panel" data-tab="mentett">
+      <div class="card">
+        <div class="card-header">
+          <span class="num">★</span>
+          <h2>Mentett besorolások</h2>
+          <span class="hint">böngészőben tárolva (LocalStorage)</span>
+        </div>
+        <div class="btn-row" style="margin-bottom:16px;">
+          <button class="btn ghost" id="btn-export-all">⬇ Összes export (JSON)</button>
+          <button class="btn ghost" id="btn-import">⬆ Import (JSON)</button>
+          <input type="file" id="file-import" accept="application/json,.json" style="display:none">
+        </div>
+        <ul class="saved-list" id="saved-list"></ul>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         BEÁLLÍTÁSOK
+         ════════════════════════════════════════════════════════════════ -->
+    <section class="tab-panel" data-tab="beallit">
+      <div class="card">
+        <div class="card-header">
+          <span class="num">⚙</span>
+          <h2>Default tervezői adatok</h2>
+          <span class="hint">új besorolásokba automatikusan kerülnek</span>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="set-tervezo_nev">Név</label>
+            <input type="text" id="set-tervezo_nev">
+          </div>
+          <div class="field">
+            <label for="set-tervezo_jogosultsag">Jogosultság</label>
+            <input type="text" id="set-tervezo_jogosultsag">
+          </div>
+          <div class="field">
+            <label for="set-tervezo_alpha">Alpha-azonosító</label>
+            <input type="text" id="set-tervezo_alpha">
+          </div>
+          <div class="field">
+            <label for="set-tervezo_dolgozott">Cég / munkáltató</label>
+            <input type="text" id="set-tervezo_dolgozott">
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="num">!</span>
+          <h2>Adatkezelés</h2>
+        </div>
+        <p class="small muted">Minden adatod a saját böngésződben tárolódik (LocalStorage). Az alkalmazás semmilyen szerverre nem küld adatot, kivéve az OpenStreetMap Nominatim szolgáltatást a címek/koordináták konvertálásához.</p>
+        <button class="btn ghost danger" id="btn-clear-all">⚠ Minden mentett besorolás törlése</button>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         TVMI HIVATKOZÁS
+         ════════════════════════════════════════════════════════════════ -->
+    <section class="tab-panel" data-tab="hivatkozas">
+      <div class="card">
+        <div class="card-header">
+          <span class="num">§</span>
+          <h2>Forrás dokumentum</h2>
+        </div>
+        <dl class="ref-meta">
+          <dt>Jel</dt><dd id="ref-jel">—</dd>
+          <dt>Cím</dt><dd id="ref-cim">—</dd>
+          <dt>Hatályos</dt><dd id="ref-hatalyos">—</dd>
+          <dt>Letöltés</dt><dd><a id="ref-url" href="#" target="_blank" rel="noopener">—</a></dd>
+        </dl>
+        <div class="tabla-info">
+          <strong>Alkalmazási kör:</strong> az alkalmazás a TvMI 9. és 10. fejezete szerinti besorolást támogatja. A kombinált fokozat (V-L-F-B) képezi a részletes tervezés alapját — a rendszer kialakításának pontos műszaki paraméterei a 10.3. fejezetben és az MSZ EN 62305-3 szabványban találhatók.
+        </div>
+        <div class="tabla-info" style="border-left-color: var(--warn); margin-top:10px;">
+          <strong>Jogi nyilatkozat:</strong> a besorolás eredménye a tervező/felülvizsgáló felelősségére mértékadó. Az alkalmazás SEMMILYEN garanciát nem vállal a normatív megfelelőségért — a felhasználó köteles a TvMI eredeti szövegével ellenőrizni.
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <p><strong>Nem norma szerinti villámvédelem besoroló</strong> · v1.0 · MIT licenc</p>
+    <p>Készítette: <strong>Kremzer Péter</strong> (ICCS Kft.) · GitHub: <a href="https://github.com/pkremzer-cpu/nem-norma-villamvedelem" target="_blank" rel="noopener">pkremzer-cpu/nem-norma-villamvedelem</a></p>
+    <p>Geocoding: © OpenStreetMap közreműködői (Nominatim) · Csak böngészőben fut, adat csak a saját eszközön</p>
+  </footer>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- ── CDN-EK ── -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+          integrity="sha512-g0iN5BgsxX/9CtUlnxRRPMFEnB+yyU/+5n3Rr8U9G2YjMtP3lwjg6lJq/RXqgC/yX0CqAcfP7+OqplKxXxlpYg=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"
+          integrity="sha512-Qlv6VSKh1gDKGoJbnyA5RMXYcvnpIqhO++MhIM2fStMcGT9i2T//tSwYFlcyoRRDcDZ+TYHpH8azBBCyhpSeqw=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://unpkg.com/docx@8.5.0/build/index.umd.min.js"></script>
+
+  <!-- ── APP SCRIPTEK ── -->
+  <script src="assets/js/tvmi-data.js"></script>
+  <script src="assets/js/tvmi-logic.js"></script>
+  <script src="assets/js/geo.js"></script>
+  <script src="assets/js/storage.js"></script>
+  <script src="assets/js/export.js"></script>
+  <script src="assets/js/app.js"></script>
+
+</body>
+</html>
