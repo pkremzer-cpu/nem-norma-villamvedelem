@@ -1,5 +1,5 @@
 {
-  "app_version": "2.0.0",
+  "app_version": "2.1.0",
   "tvmi_version": "TvMI 7.7:2026.02.01.",
   "released": "2026-05-28",
   "notes": "Fénykép-melléklet, törzsadatok, sorszámozás, aláírás, email megosztás, verzióellenőrzés, PWA, sötét mód, tömeges export. DOCX CDN fix."

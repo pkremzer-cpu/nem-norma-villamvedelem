@@ -17,7 +17,7 @@
   "use strict";
 
   // ── App verzió (SemVer) ──
-  const APP_VERSION = "2.0.0";
+  const APP_VERSION = "2.1.0";
 
   // ── Online ellenőrzés forrása (GitHub raw) ──
   // A repo gyökerében lévő VERSION.json-t kéri le.

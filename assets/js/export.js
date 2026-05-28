@@ -355,7 +355,8 @@
     const docx = _checkDocx();
     const saveAs = _checkFileSaver();
     const { Document, Paragraph, TextRun, HeadingLevel, AlignmentType, Table, TableRow, TableCell,
-            WidthType, BorderStyle, Packer, PageNumber, Footer, Header, ImageRun, PageBreak } = docx;
+            WidthType, BorderStyle, Packer, PageNumber, Footer, Header, ImageRun, PageBreak,
+            TableLayoutType } = docx;
 
     const e = record;
     const h = e.helyszin || {};
@@ -413,21 +414,29 @@
       spacing: { after: 60 },
     });
 
-    // 2-oszlopos táblázat helper
+    // 2-oszlopos táblázat helper — v2.1: fix layout + DXA (twips), nem PERCENTAGE,
+    // mert a Word mobil rendering a százalékos szélességeket egyenetlenül kezeli
+    // (innen ered a "hosszúkás / szétcsúszott" megjelenés egyes Office-verziókban).
+    // A4 portrait tartalmi szélesség = 12240 - 2*1440 = 9360 twips. Felosztás 33/67.
+    const KV_TABLE_WIDTH = 9000;     // teljes táblázat twips-ben
+    const KV_COL_LABEL = 2900;       // bal (címke) ~32%
+    const KV_COL_VALUE = 6100;       // jobb (érték) ~68%
     const buildKV = (rows) => new Table({
       rows: rows.map(([k, v]) => new TableRow({
         children: [
           new TableCell({
             children: [new Paragraph({ children: [new TextRun({ text: k, bold: true })] })],
-            width: { size: 35, type: WidthType.PERCENTAGE },
+            width: { size: KV_COL_LABEL, type: WidthType.DXA },
           }),
           new TableCell({
             children: [new Paragraph(_safeStr(v))],
-            width: { size: 65, type: WidthType.PERCENTAGE },
+            width: { size: KV_COL_VALUE, type: WidthType.DXA },
           }),
         ],
       })),
-      width: { size: 100, type: WidthType.PERCENTAGE },
+      width: { size: KV_TABLE_WIDTH, type: WidthType.DXA },
+      columnWidths: [KV_COL_LABEL, KV_COL_VALUE],
+      layout: TableLayoutType.FIXED,
     });
 
     // FŐ DOKUMENTUM

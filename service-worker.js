@@ -1,7 +1,7 @@
 /**
  * service-worker.js - PWA offline cache
  */
-const CACHE = "nnv-v2-0-0";
+const CACHE = "nnv-v2-1-0";
 const SCOPE = self.registration && self.registration.scope ? self.registration.scope : self.location.href.replace(/service-worker\.js.*$/, "");
 const ASSETS = ["", "index.html", "manifest.webmanifest",
   "assets/css/style.css",
