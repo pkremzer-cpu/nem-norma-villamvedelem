@@ -866,3 +866,152 @@ code {
   .photo-gallery { grid-template-columns: repeat(3, 1fr); }
   a[href]::after { content: ""; }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   v2.1 — UI-bug fixek (asztali sötét mód + lenyíló panel)
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── A. Lenyíló "Részletek" panel a result-row 2-oszlopos gridjén belül
+       teljes szélességet kapjon (a grid-template-columns: 80px 1fr miatt
+       a 3. injektált elem amúgy szűk oszlopba szorul) ─────────────── */
+.result-row > details.reszletek.auto {
+  grid-column: 1 / -1;
+  width: 100%;
+  margin-top: 10px;
+  background: rgba(244, 236, 216, 0.10);
+  border-color: rgba(244, 236, 216, 0.30);
+}
+.result-row > details.reszletek.auto > summary {
+  color: var(--hi);
+}
+.result-row > details.reszletek.auto .reszletek-body {
+  color: #F4ECD8;
+  border-top-color: rgba(244, 236, 216, 0.25);
+}
+.result-row > details.reszletek.auto .reszletek-forras {
+  color: rgba(244, 236, 216, 0.60);
+}
+.result-row > details.reszletek.auto .reszletek-lab {
+  background: rgba(232, 182, 0, 0.18);
+  color: #F4ECD8;
+}
+
+/* ── B. Result-card szövege bármilyen témán krém (a kobalt háttérre)
+       — eddig a var(--bg-paper)-t használta, ami sötét módban sötét volt */
+.result-row .res-text,
+.result-row .res-label,
+.result-row .res-code,
+.result-header .fokozat,
+.result-header .label {
+  color: #F4ECD8;
+}
+
+/* ── C. Sötét mód: hardcode-olt fehér háttér felülírása ─────────── */
+[data-theme="dark"] body {
+  background: var(--bg-paper);
+}
+[data-theme="dark"] .card {
+  background: var(--bg-paper-dark);
+  color: var(--ink);
+  border-color: var(--line);
+}
+[data-theme="dark"] .card-header h2 {
+  color: var(--ink);
+}
+[data-theme="dark"] .card-header .hint,
+[data-theme="dark"] .small.muted,
+[data-theme="dark"] .muted {
+  color: var(--ink-mute);
+}
+[data-theme="dark"] .field label {
+  color: var(--ink-soft);
+}
+[data-theme="dark"] .field input[type="text"],
+[data-theme="dark"] .field input[type="number"],
+[data-theme="dark"] .field input[type="email"],
+[data-theme="dark"] .field input[type="date"],
+[data-theme="dark"] .field textarea,
+[data-theme="dark"] .field select {
+  background: #1B1F26;
+  color: var(--ink);
+  border-color: var(--line);
+}
+[data-theme="dark"] .field input::placeholder {
+  color: var(--ink-mute);
+  opacity: 0.7;
+}
+[data-theme="dark"] .field input:focus,
+[data-theme="dark"] .field textarea:focus,
+[data-theme="dark"] .field select:focus {
+  background: var(--bg-paper-dark);
+  border-color: var(--hi);
+}
+
+/* ── D. Sötét mód: R-választó (radio-card) ──────────────────────── */
+[data-theme="dark"] .radio-card {
+  background: var(--bg-paper-dark);
+  color: var(--ink);
+  border-color: var(--line);
+}
+[data-theme="dark"] .radio-card:hover {
+  background: rgba(244, 236, 216, 0.06);
+  border-color: var(--line-strong);
+}
+[data-theme="dark"] .radio-card:has(input:checked) {
+  background: rgba(232, 182, 0, 0.10);
+  border-color: var(--accent);
+}
+[data-theme="dark"] .radio-card .rc-title .code {
+  background: rgba(0, 0, 0, 0.45);
+  color: var(--accent);
+}
+[data-theme="dark"] .radio-card .rc-desc,
+[data-theme="dark"] .radio-card .rc-pelda {
+  color: var(--ink-mute);
+}
+
+/* ── E. Sötét mód: aktuális draft-summary csík + tab gomb-szám ──── */
+[data-theme="dark"] .tab-btn { color: var(--ink-mute); }
+[data-theme="dark"] .tab-btn.active { color: var(--hi); }
+[data-theme="dark"] .saved-list .item,
+[data-theme="dark"] .saved-list li {
+  background: var(--bg-paper-dark);
+  color: var(--ink);
+  border-color: var(--line);
+}
+[data-theme="dark"] .tabla-info {
+  background: rgba(20, 60, 100, 0.20);
+  color: var(--ink);
+}
+
+/* ── F. Fejlesztő-attribúció kis felirat ────────────────────────── */
+.fejleszto-felirat {
+  display: inline-block;
+  margin-left: 12px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  background: rgba(232, 182, 0, 0.15);
+  color: var(--hi);
+  border-radius: var(--rad);
+  letter-spacing: 0.04em;
+}
+.fejleszto-block {
+  margin-top: 14px;
+  padding: 10px 12px;
+  background: var(--bg-paper);
+  border-left: 3px solid var(--hi);
+  border-radius: var(--rad);
+  font-size: 13px;
+}
+.fejleszto-block strong { color: var(--accent); }
+[data-theme="dark"] .fejleszto-block {
+  background: rgba(232, 182, 0, 0.08);
+  color: var(--ink);
+}
+.site-footer .fejleszto-emelt {
+  margin-top: 4px;
+  font-size: 15px;
+  color: var(--hi);
+}
+.site-footer .fejleszto-emelt strong { color: var(--accent); }
