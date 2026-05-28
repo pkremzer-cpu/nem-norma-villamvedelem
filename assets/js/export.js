@@ -121,7 +121,7 @@
    *
    *  Próbáljuk meg először a natív UTF-8-at; ha nem jó, akkor charmap.
    * ────────────────────────────────────────────────────────────────── */
-  function exportPDF(record) {
+  async function exportPDF(record) {
     const jsPDF = _checkJsPDF();
     const saveAs = _checkFileSaver();
     const doc = new jsPDF({ unit: "mm", format: "a4", compress: true });
@@ -293,6 +293,47 @@
       }
     }
 
+    // v2.0: fotó-oldalak (IndexedDB-ből, async)
+    if (window.PHOTOS) {
+      let photos = [];
+      try { photos = await window.PHOTOS.list(record._photoKey || record.id || "_draft"); } catch (er) {}
+      photos.forEach((p, idx) => {
+        doc.addPage();
+        doc.setFontSize(13).setTextColor(20, 60, 100);
+        doc.setFont(useEmbeddedFont ? "Roboto" : "helvetica", "bold");
+        doc.text(hu(`Fényképmelléklet – ${idx + 1}. ábra`), 105, 20, { align: "center" });
+        // Kép arányosan max 180mm szélességgel
+        const maxW = 180;
+        const aspect = (p.h && p.w) ? (p.h / p.w) : 0.75;
+        const w = maxW;
+        const h = Math.min(maxW * aspect, 200);
+        try { doc.addImage(p.dataUrl, "JPEG", 15, 28, w, h); }
+        catch (er) { doc.setFontSize(10).setTextColor(180, 0, 0); doc.text("Kép betöltési hiba.", 105, 60, { align: "center" }); }
+        // Képaláírás
+        const capY = 28 + h + 6;
+        doc.setFontSize(11).setTextColor(40, 40, 40);
+        doc.setFont(useEmbeddedFont ? "Roboto" : "helvetica", "italic");
+        const cap = p.felirat || `Fotó ${idx + 1}`;
+        doc.text(hu(cap), 105, capY, { align: "center", maxWidth: 180 });
+      });
+      // v2.0: aláírás-kép (ha van) — utolsó oldalra
+      const sigUrl = record.jkv?.alairas_kep;
+      if (sigUrl) {
+        doc.addPage();
+        doc.setFontSize(13).setTextColor(20, 60, 100);
+        doc.setFont(useEmbeddedFont ? "Roboto" : "helvetica", "bold");
+        doc.text(hu("Aláírás"), 105, 30, { align: "center" });
+        try { doc.addImage(sigUrl, "PNG", 65, 50, 80, 30); } catch (er) {}
+        doc.setFontSize(10).setTextColor(60, 60, 60);
+        doc.setFont(useEmbeddedFont ? "Roboto" : "helvetica", "italic");
+        doc.text(hu(record.tervezo?.nev || "tervező aláírása"), 105, 92, { align: "center" });
+        if (record.jkv?.sorszam) {
+          doc.setFontSize(9).setTextColor(120, 120, 120);
+          doc.text(hu(`Jegyzőkönyv sorszáma: ${record.jkv.sorszam}`), 105, 100, { align: "center" });
+        }
+      }
+    }
+
     // Footer minden oldalra
     const pages = doc.internal.getNumberOfPages();
     for (let p = 1; p <= pages; p++) {
@@ -314,13 +355,44 @@
     const docx = _checkDocx();
     const saveAs = _checkFileSaver();
     const { Document, Paragraph, TextRun, HeadingLevel, AlignmentType, Table, TableRow, TableCell,
-            WidthType, BorderStyle, Packer, PageNumber, Footer, Header } = docx;
+            WidthType, BorderStyle, Packer, PageNumber, Footer, Header, ImageRun, PageBreak } = docx;
 
     const e = record;
     const h = e.helyszin || {};
     const t = e.tervezo || {};
     const i = e.input || {};
     const er = e.eredmeny || {};
+    const jkv = e.jkv || {};
+    const ceg = e.ceg || {};
+
+    // v2.0: fotók betöltése IndexedDB-ből
+    let photos = [];
+    if (window.PHOTOS) {
+      try { photos = await window.PHOTOS.list(e._photoKey || e.id || "_draft"); }
+      catch (err) { photos = []; }
+    }
+
+    // v2.0: dataURL → Uint8Array (ImageRun-hoz)
+    const dataUrlToBytes = (dataUrl) => {
+      if (!dataUrl) return null;
+      const b64 = String(dataUrl).split(",")[1] || dataUrl;
+      try { const bin = atob(b64); const arr = new Uint8Array(bin.length);
+        for (let k = 0; k < bin.length; k++) arr[k] = bin.charCodeAt(k);
+        return arr;
+      } catch (err) { return null; }
+    };
+    // v2.0: kép paragrafusa (centered)
+    const imagePara = (dataUrl, w, h, caption) => {
+      const bytes = dataUrlToBytes(dataUrl);
+      if (!bytes) return null;
+      const runs = [new ImageRun({ data: bytes, transformation: { width: w, height: h } })];
+      if (caption) {
+        return [new Paragraph({ children: runs, alignment: AlignmentType.CENTER, spacing: { before: 100, after: 40 } }),
+                new Paragraph({ children: [new TextRun({ text: caption, italics: true, size: 18 })],
+                  alignment: AlignmentType.CENTER, spacing: { after: 140 } })];
+      }
+      return [new Paragraph({ children: runs, alignment: AlignmentType.CENTER, spacing: { before: 100, after: 100 } })];
+    };
 
     // Stílusos paragrafus helper
     const para = (txt, opts = {}) => new Paragraph({
@@ -361,6 +433,31 @@
     // FŐ DOKUMENTUM
     const children = [];
 
+    // v2.0: Cég-logó (ha van) + cégadat fejléc
+    if (ceg.logo) {
+      const lp = imagePara(ceg.logo, 180, 70);
+      if (lp) lp.forEach(p => children.push(p));
+    }
+    if (ceg.nev) {
+      children.push(new Paragraph({
+        children: [new TextRun({ text: ceg.nev, bold: true, size: 24 })],
+        alignment: AlignmentType.CENTER, spacing: { after: 40 },
+      }));
+      const cegLine = [ceg.szekhely, ceg.telefon, ceg.email].filter(Boolean).join(" · ");
+      if (cegLine) children.push(new Paragraph({
+        children: [new TextRun({ text: cegLine, size: 18, color: "555555" })],
+        alignment: AlignmentType.CENTER, spacing: { after: 160 },
+      }));
+    }
+
+    // v2.0: Jegyzőkönyv sorszáma
+    if (jkv.sorszam) {
+      children.push(new Paragraph({
+        children: [new TextRun({ text: `Jegyzőkönyv sorszáma: ${jkv.sorszam}`, bold: true, size: 22 })],
+        alignment: AlignmentType.RIGHT, spacing: { after: 100 },
+      }));
+    }
+
     // Címsor
     children.push(new Paragraph({
       children: [new TextRun({ text: "NEM NORMA SZERINTI VILLÁMVÉDELEM", bold: true, size: 32 })],
@@ -386,16 +483,20 @@
       ["GPS koordináta (WGS84):", `${_fmtCoord(h.lat)}, ${_fmtCoord(h.lng)}`],
       ["GPS pontosság:", h.accuracy_m ? `${Math.round(h.accuracy_m)} m` : "—"],
       ["Településrész / POI:", h.poi_name],
+      ["Vizsgálat / besorolás dátuma:", jkv.datum || _fmtDate(e.modositva || e.letrehozva).slice(0, 10)],
+      ["Következő felülvizsgálat (OTSZ):", jkv.kov_felulvizsgalat || "—"],
     ]));
 
     // 2. Tervező
-    if (t.nev || t.jogosultsag || t.alpha_szam || t.dolgozott) {
+    if (t.nev || t.jogosultsag || t.alpha_szam || t.dolgozott || t.mmk || t.nevjegyzek) {
       children.push(heading("2. Tervező / felülvizsgáló", HeadingLevel.HEADING_1));
       children.push(buildKV([
         ["Név:", t.nev],
         ["Jogosultság:", t.jogosultsag],
+        ["MMK / kamarai szám:", t.mmk],
+        ["Névjegyzéki szám:", t.nevjegyzek],
         ["Alpha-azonosító:", t.alpha_szam],
-        ["Munkáltató / cég:", t.dolgozott],
+        ["Munkáltató / cég:", t.dolgozott || ceg.nev],
       ]));
     }
 
@@ -458,18 +559,42 @@
     children.push(para(`Kibocsátó: ${window.TVMI?.META?.kibocsato || ""}`));
     children.push(para(`Letöltés: ${window.TVMI?.META?.url || ""}`));
 
-    // 7. Jegyzőkönyv-keltezés
-    children.push(heading("7. Záró nyilatkozat", HeadingLevel.HEADING_1));
+    // 7. v2.0: Fényképmelléklet (ha vannak fotók)
+    if (photos.length) {
+      children.push(heading("7. Fényképmelléklet", HeadingLevel.HEADING_1));
+      photos.forEach((p, idx) => {
+        const cap = (p.felirat ? p.felirat : `Fotó ${idx + 1}`);
+        const fullCap = `${idx + 1}. ábra — ${cap}`;
+        // Méretezés: max 360 px szélesség, arányosan
+        const targetW = 360;
+        const targetH = Math.round((p.h || 240) * targetW / (p.w || 320));
+        const blocks = imagePara(p.dataUrl, targetW, targetH, fullCap);
+        if (blocks) blocks.forEach(b => children.push(b));
+      });
+    }
+
+    // 8. v2.0: Jegyzőkönyv-keltezés + aláírás-kép
+    const sectionN = photos.length ? "8" : "7";
+    children.push(heading(`${sectionN}. Záró nyilatkozat`, HeadingLevel.HEADING_1));
     children.push(para(`Jelen besorolás a fent megadott TvMI alapján, a tervező/felülvizsgáló által megadott adatokra építve készült. A besorolás megfelelősége az adatok pontosságától függ.`));
     children.push(para(`Készült: ${_fmtDate(e.modositva || e.letrehozva)}`));
-    children.push(new Paragraph({
-      children: [new TextRun({ text: "_______________________", break: 2 })],
-      alignment: AlignmentType.RIGHT,
-    }));
-    children.push(new Paragraph({
-      children: [new TextRun({ text: t.nev || "tervező aláírása" })],
-      alignment: AlignmentType.RIGHT,
-    }));
+    if (jkv.alairas_kep) {
+      const sigBlocks = imagePara(jkv.alairas_kep, 200, 70);
+      if (sigBlocks) sigBlocks.forEach(b => children.push(b));
+      children.push(new Paragraph({
+        children: [new TextRun({ text: t.nev || "tervező aláírása", italics: true })],
+        alignment: AlignmentType.CENTER, spacing: { after: 80 },
+      }));
+    } else {
+      children.push(new Paragraph({
+        children: [new TextRun({ text: "_______________________", break: 2 })],
+        alignment: AlignmentType.RIGHT,
+      }));
+      children.push(new Paragraph({
+        children: [new TextRun({ text: t.nev || "tervező aláírása" })],
+        alignment: AlignmentType.RIGHT,
+      }));
+    }
 
     const doc = new Document({
       creator: t.nev || "TvMI 7.7 besoroló",
@@ -504,6 +629,21 @@
   }
 
   /* ──────────────────────────────────────────────────────────────────
+   *  TÖMEGES DOCX EXPORT — minden rekordot külön DOCX fájlba ment
+   *  (Pragmatikus: a böngésző tömeges letöltés-engedélyt kérhet.)
+   * ────────────────────────────────────────────────────────────────── */
+  async function exportBulkDOCX(records) {
+    if (!records || !records.length) throw new Error("Nincs exportálható rekord.");
+    let n = 0;
+    for (const r of records) {
+      try { await exportDOCX(r); n++; }
+      catch (err) { console.error("Tömeges export hiba egy rekordnál:", err); }
+      await new Promise(res => setTimeout(res, 450));
+    }
+    return n;
+  }
+
+  /* ──────────────────────────────────────────────────────────────────
    *  Megosztható link másolása vágólapra
    * ────────────────────────────────────────────────────────────────── */
   async function copyShareLink(record) {
@@ -533,6 +673,7 @@
     exportAllToJSON,
     exportPDF,
     exportDOCX,
+    exportBulkDOCX,
     copyShareLink,
   });
 })();

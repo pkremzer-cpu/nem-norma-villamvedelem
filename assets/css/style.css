@@ -733,3 +733,136 @@ li.empty {
   .result-card { background: white; color: black; border: 2px solid black; }
   .result-card * { color: black !important; }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   v2.0 — Sötét mód, fénykép, aláírás, lenyíló panelek, nyomtatás
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── SÖTÉT MÓD ──────────────────────────────────────────────────── */
+[data-theme="dark"] {
+  --bg-paper: #14171C;
+  --bg-paper-dark: #1E222A;
+  --ink: #E6E1D4;
+  --ink-soft: #C2BDB0;
+  --ink-mute: #8A8F98;
+  --line: #353B45;
+  --line-strong: #59616E;
+  --accent: #FF5A4D;
+  --accent-soft: #E0463B;
+  --hi: #F2C430;
+  --kobalt: #2C6DA8;
+  --kobalt-soft: #3F86C8;
+  --shadow-card: 0 1px 0 var(--line), 0 4px 14px rgba(0,0,0,0.4);
+  --shadow-hover: 0 1px 0 var(--line-strong), 0 8px 24px rgba(0,0,0,0.55);
+}
+[data-theme="dark"] img.logo-preview { background:#fff; }
+
+/* ── TÉMA KAPCSOLÓ ──────────────────────────────────────────────── */
+.theme-toggle {
+  position: absolute; top: 14px; right: 16px;
+  background: transparent; border: 1px solid var(--bg-paper);
+  color: var(--bg-paper); border-radius: var(--rad);
+  font-size: 18px; line-height: 1; padding: 6px 9px; cursor: pointer;
+  transition: background .15s, transform .15s;
+}
+.theme-toggle:hover { background: rgba(255,255,255,0.12); transform: scale(1.08); }
+.site-header-inner { position: relative; }
+
+/* ── LENYÍLÓ "RÉSZLETEK" PANEL ──────────────────────────────────── */
+details.reszletek {
+  margin-top: 6px; border: 1px solid var(--line);
+  border-radius: var(--rad); background: var(--bg-paper-dark);
+}
+details.reszletek > summary {
+  cursor: pointer; padding: 7px 10px; font-size: 13px; font-weight: 600;
+  color: var(--kobalt); list-style: none; user-select: none;
+}
+details.reszletek > summary::-webkit-details-marker { display: none; }
+details.reszletek > summary::before { content: "▸ "; color: var(--ink-mute); }
+details.reszletek[open] > summary::before { content: "▾ "; }
+details.reszletek .reszletek-body {
+  padding: 4px 12px 12px; font-size: 13px; line-height: 1.55;
+  color: var(--ink-soft); white-space: pre-wrap;
+  border-top: 1px dashed var(--line);
+}
+details.reszletek .reszletek-forras {
+  display: block; margin-top: 8px; font-family: var(--font-mono);
+  font-size: 11px; color: var(--ink-mute);
+}
+details.reszletek .reszletek-lab {
+  margin-top: 8px; padding: 7px 10px; background: rgba(232,182,0,0.10);
+  border-left: 3px solid var(--hi); font-size: 12.5px; white-space: pre-wrap;
+}
+
+/* ── FÉNYKÉP GALÉRIA ────────────────────────────────────────────── */
+.photo-gallery {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px; margin-top: 14px;
+}
+.photo-item {
+  border: 1px solid var(--line); border-radius: var(--rad);
+  background: var(--bg-paper-dark); overflow: hidden; display: flex; flex-direction: column;
+}
+.photo-item img.photo-thumb {
+  width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block;
+  background: #000; cursor: pointer;
+}
+.photo-item .photo-caption {
+  border: none; border-top: 1px solid var(--line); background: transparent;
+  color: var(--ink); font-size: 12px; padding: 6px 8px; width: 100%;
+  font-family: var(--font-sans);
+}
+.photo-item .photo-meta {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 4px 8px; font-size: 11px; color: var(--ink-mute);
+}
+.photo-item .photo-del {
+  background: transparent; border: none; color: var(--accent);
+  cursor: pointer; font-size: 14px; padding: 2px 6px;
+}
+
+/* ── ALÁÍRÁS CANVAS ─────────────────────────────────────────────── */
+.signature-wrap { margin-top: 6px; }
+.signature-canvas {
+  width: 100%; max-width: 600px; height: 180px; touch-action: none;
+  border: 1px dashed var(--line-strong); border-radius: var(--rad);
+  background: #ffffff; display: block; cursor: crosshair;
+}
+
+/* ── LOGÓ ELŐNÉZET ──────────────────────────────────────────────── */
+.logo-preview-wrap { margin-top: 10px; display: flex; align-items: center; gap: 14px; }
+.logo-preview {
+  max-height: 64px; max-width: 220px; border: 1px solid var(--line);
+  border-radius: var(--rad); padding: 4px; background: #fff;
+}
+
+/* ── KIS HELPEREK ───────────────────────────────────────────────── */
+.btn.small { padding: 5px 10px; font-size: 12px; }
+.small { font-size: 12.5px; }
+code {
+  font-family: var(--font-mono); font-size: 12px;
+  background: var(--bg-paper-dark); padding: 1px 5px; border-radius: var(--rad);
+}
+#changelog-content { font-size: 13px; line-height: 1.5; }
+#changelog-content h4 { margin: 12px 0 4px; color: var(--kobalt); font-size: 13.5px; }
+#changelog-content ul { margin: 0 0 8px 18px; }
+#changelog-content li { margin: 2px 0; }
+.update-badge {
+  display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px;
+  background: var(--hi); color: #000; font-weight: 600;
+}
+.update-ok { color: var(--ok); }
+
+/* ── NYOMTATÓBARÁT NÉZET ────────────────────────────────────────── */
+@media print {
+  .site-header, .tab-bar, .theme-toggle, .result-actions,
+  .btn-row, .btn, #share-link-display, .site-footer,
+  .tab-panel:not(.active) { display: none !important; }
+  body { background: #fff; color: #000; }
+  .card, .result-card { box-shadow: none; border: 1px solid #999; break-inside: avoid; }
+  details.reszletek { border: none; }
+  details.reszletek .reszletek-body { display: block !important; }
+  details.reszletek[open] > summary, details.reszletek > summary { color: #000; }
+  .photo-gallery { grid-template-columns: repeat(3, 1fr); }
+  a[href]::after { content: ""; }
+}

@@ -239,6 +239,39 @@
   }
 
   /* ──────────────────────────────────────────────────────────────────
+   *  Jegyzőkönyv sorszám-generálás
+   *  Formátum: {PREFIX}-{ÉVSZÁM}-{NNN}
+   *   - PREFIX a törzsadatból (meta.sorszam_prefix, pl. "ICCS-NNV")
+   *   - ÉVSZÁM automatikus (aktuális év)
+   *   - NNN évente növekvő, 3 jegyű, balról nullázva
+   *  A számláló évenként a metában: meta.sorszam_counters = { "2026": 7, ... }
+   * ────────────────────────────────────────────────────────────────── */
+  function _composeSorszam(prefix, year, n) {
+    const num = String(n).padStart(3, "0");
+    return prefix ? `${prefix}-${year}-${num}` : `${year}-${num}`;
+  }
+
+  // A KÖVETKEZŐ sorszám előnézete (NEM növeli a számlálót)
+  function peekSorszam() {
+    const meta = getMeta();
+    const prefix = (meta.sorszam_prefix || "").trim();
+    const year = new Date().getFullYear();
+    const counters = meta.sorszam_counters || {};
+    return _composeSorszam(prefix, year, (counters[year] || 0) + 1);
+  }
+
+  // Új sorszám kiadása (növeli és elmenti a számlálót)
+  function nextSorszam() {
+    const meta = getMeta();
+    const prefix = (meta.sorszam_prefix || "").trim();
+    const year = new Date().getFullYear();
+    const counters = Object.assign({}, meta.sorszam_counters || {});
+    counters[year] = (counters[year] || 0) + 1;
+    setMeta({ sorszam_counters: counters });
+    return _composeSorszam(prefix, year, counters[year]);
+  }
+
+  /* ──────────────────────────────────────────────────────────────────
    *  PUBLIC API
    * ────────────────────────────────────────────────────────────────── */
   window.STORAGE = Object.freeze({
@@ -247,5 +280,6 @@
     makeShareLink, parseShareFragment, clearShareFragment,
     exportJSON, exportJSONString, importJSON,
     getMeta, setMeta,
+    peekSorszam, nextSorszam,
   });
 })();

@@ -53,6 +53,25 @@
       newDraft();
     }
 
+    // v2.0: globális getterek az app-v2.js modulnak
+    window.__currentRecordId = () => currentRecord?.id || null;
+    window.__currentExportRecord = () => {
+      if (!currentResult?.ok) return null;
+      const rec = currentRecord ? { ...currentRecord } : {
+        id: null,
+        epitmeny_neve: currentDraft.epitmeny_neve || "Besorolás",
+        helyszin: { ...currentDraft.helyszin },
+        tervezo: { ...currentDraft.tervezo },
+        input: { ...currentDraft.input },
+        eredmeny: currentResult,
+        letrehozva: new Date().toISOString(),
+        modositva: new Date().toISOString(),
+        tvmi_verzio: window.TVMI?.META?.jel,
+      };
+      if (window.APPV2) window.APPV2.collectExtrasInto(rec);
+      return rec;
+    };
+
     // Frissítjük a mentett lista számlálót
     updateSavedCount();
   }
@@ -346,9 +365,19 @@
       input: { ...currentDraft.input },
       eredmeny: currentResult,
     };
+    // v2.0: extra adatok (jkv, ceg, logó, dátumok, aláírás, photoKey)
+    if (window.APPV2) window.APPV2.collectExtrasInto(rec);
+    // v2.0: sorszám kiadása ha még nincs
+    if (window.STORAGE.nextSorszam && (!rec.jkv || !rec.jkv.sorszam)) {
+      rec.jkv = rec.jkv || {};
+      rec.jkv.sorszam = window.STORAGE.nextSorszam();
+      const j = document.getElementById("jkv-sorszam"); if (j) j.value = rec.jkv.sorszam;
+    }
     const saved = window.STORAGE.save(rec);
     if (saved) {
       currentRecord = saved;
+      // v2.0: draft fotók átkötése a mentett rekord id-jára
+      if (window.APPV2) { Promise.resolve(window.APPV2.afterSave(saved)).catch(() => {}); }
       showToast(`Mentve: ${saved.epitmeny_neve} (${saved.eredmeny.fokozat_string})`, "ok");
       updateSavedCount();
     } else {
@@ -405,12 +434,20 @@
       modositva: new Date().toISOString(),
       tvmi_verzio: window.TVMI?.META?.jel,
     };
+    // v2.0: extra adatok (jkv, ceg, logó, dátumok, aláírás, photoKey) + sorszám előnézet
+    if (window.APPV2) window.APPV2.collectExtrasInto(rec);
+    if (rec.jkv && !rec.jkv.sorszam && window.STORAGE.peekSorszam) {
+      rec.jkv.sorszam = window.STORAGE.peekSorszam();
+    }
     try {
       if (format === "pdf") {
-        window.EXPORT.exportPDF(rec);
-        showToast("PDF letöltése elindult.", "ok");
+        Promise.resolve(window.EXPORT.exportPDF(rec))
+          .then(() => showToast("PDF letöltése elindult.", "ok"))
+          .catch(err => showToast("PDF hiba: " + err.message, "error"));
       } else if (format === "docx") {
-        window.EXPORT.exportDOCX(rec).then(() => showToast("DOCX letöltése elindult.", "ok"));
+        window.EXPORT.exportDOCX(rec)
+          .then(() => showToast("DOCX letöltése elindult.", "ok"))
+          .catch(err => showToast("DOCX hiba: " + err.message, "error"));
       } else if (format === "json") {
         window.EXPORT.exportRecordToJSON(rec);
         showToast("JSON letöltése elindult.", "ok");

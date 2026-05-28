@@ -8,6 +8,10 @@
   <meta name="author" content="Kremzer Péter (ICCS Kft.)">
   <meta name="theme-color" content="#0E1116">
   <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
   <!-- Open Graph (megosztáshoz) -->
   <meta property="og:title" content="Nem norma szerinti villámvédelem besoroló">
@@ -20,7 +24,8 @@
     <div class="site-header-inner">
       <div class="brand">TvMI 7.7 · besoroló</div>
       <h1 class="app-title">Nem norma szerinti villámvédelem</h1>
-      <div class="app-sub">v1.1 · 2026.02.01.</div>
+      <div class="app-sub">v2.0 · 2026.02.01.</div>
+      <button class="theme-toggle" id="btn-theme-toggle" type="button" title="Sötét / világos mód" aria-label="Téma váltás">🌙</button>
     </div>
   </header>
 
@@ -275,6 +280,55 @@
         </div>
       </div>
 
+      <!-- ── 8. FÉNYKÉPEK ──────────────────────────────────────── -->
+      <div class="card">
+        <div class="card-header">
+          <span class="num">08</span>
+          <h2>Fényképek</h2>
+          <span class="hint">a jegyzőkönyvbe kerülnek, képaláírással</span>
+        </div>
+        <div class="btn-row">
+          <label class="btn ghost" for="photo-camera">📷 Fénykép készítése</label>
+          <input type="file" id="photo-camera" accept="image/*" capture="environment" style="display:none">
+          <label class="btn ghost" for="photo-file">🖼 Kép tallózása</label>
+          <input type="file" id="photo-file" accept="image/*" multiple style="display:none">
+        </div>
+        <p class="small muted" id="photo-hint">Még nincs fénykép. Ajánlott max <span id="photo-max">12</span> kép / jegyzőkönyv. A képek automatikusan átméreteződnek (max 1600 px) és a böngésződben tárolódnak (IndexedDB).</p>
+        <div id="photo-gallery" class="photo-gallery"></div>
+      </div>
+
+      <!-- ── 9. JEGYZŐKÖNYV ADATOK ─────────────────────────────── -->
+      <div class="card">
+        <div class="card-header">
+          <span class="num">09</span>
+          <h2>Jegyzőkönyv adatok</h2>
+          <span class="hint">sorszám, dátumok, aláírás</span>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="jkv-sorszam">Sorszám</label>
+            <input type="text" id="jkv-sorszam" readonly placeholder="törzsadatok → sorszám-prefix">
+          </div>
+          <div class="field">
+            <label for="jkv-datum">Vizsgálat / besorolás dátuma</label>
+            <input type="date" id="jkv-datum">
+          </div>
+          <div class="field">
+            <label for="jkv-kov-felulvizsgalat">Következő felülvizsgálat (OTSZ)</label>
+            <input type="date" id="jkv-kov-felulvizsgalat">
+          </div>
+        </div>
+        <div class="field">
+          <label>Aláírás (rajzold be ujjal/egérrel)</label>
+          <div class="signature-wrap">
+            <canvas id="signature-canvas" class="signature-canvas" width="600" height="180"></canvas>
+            <div class="btn-row">
+              <button class="btn ghost small" id="btn-signature-clear" type="button">Aláírás törlése</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- ── BESOROL gomb ───────────────────────────────────────── -->
       <div class="btn-row" style="justify-content:center;margin:24px 0;">
         <button id="btn-besorol" class="btn primary" disabled>▶ Besorolás futtatása</button>
@@ -355,6 +409,7 @@
         <div class="result-actions">
           <button class="btn" id="btn-mentes" disabled>💾 Mentés</button>
           <button class="btn" id="btn-megoszt" disabled>🔗 Megosztó link</button>
+          <button class="btn" id="btn-email" disabled>✉ Email</button>
           <button class="btn" id="btn-pdf" disabled>📄 PDF</button>
           <button class="btn" id="btn-docx" disabled>📝 DOCX</button>
           <button class="btn" id="btn-json" disabled>{ } JSON</button>
@@ -378,6 +433,7 @@
         <div class="btn-row" style="margin-bottom:16px;">
           <button class="btn ghost" id="btn-export-all">⬇ Összes export (JSON)</button>
           <button class="btn ghost" id="btn-import">⬆ Import (JSON)</button>
+          <button class="btn ghost" id="btn-export-bulk-docx">📚 Tömeges DOCX (összes)</button>
           <input type="file" id="file-import" accept="application/json,.json" style="display:none">
         </div>
         <ul class="saved-list" id="saved-list"></ul>
@@ -411,7 +467,82 @@
             <label for="set-tervezo_dolgozott">Cég / munkáltató</label>
             <input type="text" id="set-tervezo_dolgozott">
           </div>
+          <div class="field">
+            <label for="set-tervezo_mmk">MMK / kamarai szám</label>
+            <input type="text" id="set-tervezo_mmk" placeholder="pl. 13-12345">
+          </div>
+          <div class="field">
+            <label for="set-tervezo_nevjegyzek">Névjegyzéki szám</label>
+            <input type="text" id="set-tervezo_nevjegyzek" placeholder="pl. V-13-12345">
+          </div>
         </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="num">🏢</span>
+          <h2>Cégadatok és logó</h2>
+          <span class="hint">a jegyzőkönyv fejlécébe kerül</span>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="set-ceg_nev">Cég neve</label>
+            <input type="text" id="set-ceg_nev" placeholder="pl. ICCS Kft.">
+          </div>
+          <div class="field">
+            <label for="set-ceg_szekhely">Székhely</label>
+            <input type="text" id="set-ceg_szekhely" placeholder="1181 Budapest, Dugonics u. 9-11.">
+          </div>
+          <div class="field">
+            <label for="set-ceg_telefon">Telefon</label>
+            <input type="text" id="set-ceg_telefon" placeholder="+36 1 319 0391">
+          </div>
+          <div class="field">
+            <label for="set-ceg_email">E-mail</label>
+            <input type="email" id="set-ceg_email" placeholder="iroda@ceg.hu">
+          </div>
+        </div>
+        <div class="field">
+          <label for="set-ceg_logo-file">Cég-logó (PNG/JPG, fejlécbe)</label>
+          <input type="file" id="set-ceg_logo-file" accept="image/png,image/jpeg">
+          <div id="logo-preview-wrap" class="logo-preview-wrap hidden">
+            <img id="logo-preview" alt="logó előnézet" class="logo-preview">
+            <button class="btn ghost danger small" id="btn-logo-remove" type="button">Logó törlése</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="num">#</span>
+          <h2>Jegyzőkönyv sorszámozás</h2>
+          <span class="hint">prefix + évszám + automatikus sorszám</span>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="set-sorszam_prefix">Sorszám-prefix</label>
+            <input type="text" id="set-sorszam_prefix" placeholder="pl. ICCS-NNV">
+          </div>
+          <div class="field">
+            <label>Következő sorszám (előnézet)</label>
+            <input type="text" id="sorszam-preview" readonly>
+          </div>
+        </div>
+        <p class="small muted">A teljes sorszám: <code>PREFIX-ÉVSZÁM-NNN</code> (pl. <code>ICCS-NNV-2026-001</code>). Az évszám automatikus, a sorszám évente 1-től növekszik. A számláló a mentéskor lép.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="num">⟳</span>
+          <h2>Verzió és frissítés</h2>
+        </div>
+        <p class="small">Alkalmazás: <strong id="ver-app">—</strong> · Adatbázis: <strong id="ver-tvmi">—</strong></p>
+        <div id="ver-update-status" class="small muted">Frissítés-ellenőrzés indításkor automatikus.</div>
+        <button class="btn ghost small" id="btn-check-update" type="button">Frissítés keresése most</button>
+        <details class="reszletek" style="margin-top:12px;">
+          <summary>Verziótörténet (changelog)</summary>
+          <div id="changelog-content"></div>
+        </details>
       </div>
 
       <div class="card">
@@ -451,7 +582,7 @@
   </main>
 
   <footer class="site-footer">
-    <p><strong>Nem norma szerinti villámvédelem besoroló</strong> · v1.1 · MIT licenc</p>
+    <p><strong>Nem norma szerinti villámvédelem besoroló</strong> · v2.0 · MIT licenc</p>
     <p>Készítette: <strong>Kremzer Péter</strong> (ICCS Kft.) · GitHub: <a href="https://github.com/pkremzer-cpu/nem-norma-villamvedelem" target="_blank" rel="noopener">pkremzer-cpu/nem-norma-villamvedelem</a></p>
     <p>Geocoding: © OpenStreetMap közreműködői (Nominatim) · Csak böngészőben fut, adat csak a saját eszközön</p>
   </footer>
@@ -465,15 +596,29 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"
           integrity="sha512-Qlv6VSKh1gDKGoJbnyA5RMXYcvnpIqhO++MhIM2fStMcGT9i2T//tSwYFlcyoRRDcDZ+TYHpH8azBBCyhpSeqw=="
           crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://unpkg.com/docx@8.5.0/build/index.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
 
   <!-- ── APP SCRIPTEK ── -->
   <script src="assets/js/tvmi-data.js"></script>
   <script src="assets/js/tvmi-logic.js"></script>
   <script src="assets/js/geo.js"></script>
   <script src="assets/js/storage.js"></script>
+  <script src="assets/js/photos.js"></script>
+  <script src="assets/js/version.js"></script>
   <script src="assets/js/export.js"></script>
   <script src="assets/js/app.js"></script>
+  <script src="assets/js/app-v2.js"></script>
+
+  <!-- PWA service worker regisztráció -->
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("service-worker.js")
+          .then(reg => console.log("[SW] registered:", reg.scope))
+          .catch(err => console.warn("[SW] reg failed:", err));
+      });
+    }
+  </script>
 
 </body>
 </html>
