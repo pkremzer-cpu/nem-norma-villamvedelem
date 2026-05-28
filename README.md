@@ -175,7 +175,7 @@ Az alkalmazás csak az alábbi domain-eket éri el:
 
 ## 📄 Licenc
 
-[MIT](LICENSE) © 2026 Kremzer Péter / ICCS Kft.
+[MIT](LICENSE) © 2026 Kremzer Péter
 
 ---
 

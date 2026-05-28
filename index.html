@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nem norma szerinti villámvédelem - TvMI 7.7 besoroló</title>
   <meta name="description" content="Nem norma szerinti villámvédelem besoroló alkalmazás a TvMI 7.7:2026.02.01. 10. fejezet alapján. R/M/T/K osztály + V/L/F/B fokozat számítása, PDF/DOCX jegyzőkönyv export.">
-  <meta name="author" content="Kremzer Péter (ICCS Kft.)">
+  <meta name="author" content="Kremzer Péter">
   <meta name="theme-color" content="#0E1116">
   <link rel="stylesheet" href="assets/css/style.css">
   <link rel="manifest" href="manifest.webmanifest">
@@ -275,7 +275,7 @@
           </div>
           <div class="field">
             <label for="tervezo-dolgozott">Cég / munkáltató</label>
-            <input type="text" id="tervezo-dolgozott" placeholder="pl. ICCS Kft.">
+            <input type="text" id="tervezo-dolgozott" placeholder="pl. cégnév">
           </div>
         </div>
       </div>
@@ -487,15 +487,15 @@
         <div class="field-row">
           <div class="field">
             <label for="set-ceg_nev">Cég neve</label>
-            <input type="text" id="set-ceg_nev" placeholder="pl. ICCS Kft.">
+            <input type="text" id="set-ceg_nev" placeholder="pl. saját cégnév">
           </div>
           <div class="field">
             <label for="set-ceg_szekhely">Székhely</label>
-            <input type="text" id="set-ceg_szekhely" placeholder="1181 Budapest, Dugonics u. 9-11.">
+            <input type="text" id="set-ceg_szekhely" placeholder="pl. 1234 Budapest, Példa utca 1.">
           </div>
           <div class="field">
             <label for="set-ceg_telefon">Telefon</label>
-            <input type="text" id="set-ceg_telefon" placeholder="+36 1 319 0391">
+            <input type="text" id="set-ceg_telefon" placeholder="pl. +36 30 123 4567">
           </div>
           <div class="field">
             <label for="set-ceg_email">E-mail</label>
@@ -521,14 +521,14 @@
         <div class="field-row">
           <div class="field">
             <label for="set-sorszam_prefix">Sorszám-prefix</label>
-            <input type="text" id="set-sorszam_prefix" placeholder="pl. ICCS-NNV">
+            <input type="text" id="set-sorszam_prefix" placeholder="pl. NNV-KP">
           </div>
           <div class="field">
             <label>Következő sorszám (előnézet)</label>
             <input type="text" id="sorszam-preview" readonly>
           </div>
         </div>
-        <p class="small muted">A teljes sorszám: <code>PREFIX-ÉVSZÁM-NNN</code> (pl. <code>ICCS-NNV-2026-001</code>). Az évszám automatikus, a sorszám évente 1-től növekszik. A számláló a mentéskor lép.</p>
+        <p class="small muted">A teljes sorszám: <code>PREFIX-ÉVSZÁM-NNN</code> (pl. <code>NNV-KP-2026-001</code>). Az évszám automatikus, a sorszám évente 1-től növekszik. A számláló a mentéskor lép.</p>
       </div>
 
       <div class="card">
@@ -583,7 +583,7 @@
 
   <footer class="site-footer">
     <p><strong>Nem norma szerinti villámvédelem besoroló</strong> · v2.0 · MIT licenc</p>
-    <p>Készítette: <strong>Kremzer Péter</strong> (ICCS Kft.) · GitHub: <a href="https://github.com/pkremzer-cpu/nem-norma-villamvedelem" target="_blank" rel="noopener">pkremzer-cpu/nem-norma-villamvedelem</a></p>
+    <p>Készítette: <strong>Kremzer Péter</strong> · GitHub: <a href="https://github.com/pkremzer-cpu/nem-norma-villamvedelem" target="_blank" rel="noopener">pkremzer-cpu/nem-norma-villamvedelem</a></p>
     <p>Geocoding: © OpenStreetMap közreműködői (Nominatim) · Csak böngészőben fut, adat csak a saját eszközön</p>
   </footer>
 

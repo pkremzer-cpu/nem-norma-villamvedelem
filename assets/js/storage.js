@@ -241,7 +241,7 @@
   /* ──────────────────────────────────────────────────────────────────
    *  Jegyzőkönyv sorszám-generálás
    *  Formátum: {PREFIX}-{ÉVSZÁM}-{NNN}
-   *   - PREFIX a törzsadatból (meta.sorszam_prefix, pl. "ICCS-NNV")
+   *   - PREFIX a törzsadatból (meta.sorszam_prefix, pl. "NNV-KP")
    *   - ÉVSZÁM automatikus (aktuális év)
    *   - NNN évente növekvő, 3 jegyű, balról nullázva
    *  A számláló évenként a metában: meta.sorszam_counters = { "2026": 7, ... }
